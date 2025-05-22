@@ -1,0 +1,96 @@
+﻿@model TaskManager.Interface.Model.DtoTarefa
+
+@{
+	ViewData["Title"] = "Editar Tarefa";
+}
+
+<div class="row justify-content-md-center">
+	<div class="col-md-8">
+		<div class="alert" id="alertTarefa" role="alert"></div>
+
+		<form id="editarTarefa" name="editarTarefa">
+			<input type="hidden" id="id" name="id" value="@Model.Id" />
+
+			<h2 class="text-monospace">Editar Tarefa</h2>
+			<hr />
+
+			<div class="row g-3">
+				<div class="col-md-12">
+					<label for="title" class="form-label">Título</label>
+					<input id="title" name="title" class="form-control" value="@Model.Title" />
+				</div>
+				<div class="col-md-12">
+					<label for="description" class="form-label">Descrição</label>
+					<textarea id="description" name="description" class="form-control" rows="3">@Model.Description</textarea>
+				</div>
+				@* <div class="col-md-12">
+					<label for="status" class="form-label">Status</label>
+					<textarea id="status" name="status" class="form-control" rows="3">@Model.Status</textarea>
+				</div> *@
+				@* <div class="col-md-6">
+					<label for="createdAt" class="form-label">Data de Criação</label>
+					<input type="text" id="createdAt" name="createdAt" class="form-control" value="@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")" readonly />
+				</div> *@
+			</div>
+
+			<div class="form-group text-center mt-4">
+				<button id="editTarefa" type="button" class="btn btn-success">Salvar</button>
+			</div>
+		</form>
+	</div>
+</div>
+
+@section Scripts {
+	<script>
+		$(function () {
+			$('#editTarefa').click(function (e) {
+				showLoading();
+				e.preventDefault();
+
+				
+				// const { id, title, description, status, createdAt } = form;
+
+
+				const form = document.forms.editarTarefa;
+				const { id, title, description } = form;
+
+				if (title.value === "") {
+					hideLoading();
+					alert('É necessário adicionar o título da tarefa!');
+					return false;
+				}
+				if (description.value === "") {
+					hideLoading();
+					alert('É necessário adicionar a descrição da tarefa!');
+					return false;
+				}
+
+				const obj = {
+					Id: id.value,
+					Title: title.value,
+					Description: description.value
+				};
+
+				// Debug opcional
+				console.log("Enviando:", obj);
+
+				$.ajax({
+					url: '/Tarefa/EditarTarefa',
+					method: 'POST',
+					data: JSON.stringify(obj),
+					dataType: 'json',
+					contentType: 'application/json',
+					success: function () {
+						hideLoading();
+						alert('Tarefa atualizada com sucesso!');
+						window.location.href = "/Tarefa";
+					},
+					error: function () {
+						hideLoading();
+						alert('Erro ao atualizar tarefa!');
+					}
+				});
+			});
+		});
+	</script>
+}

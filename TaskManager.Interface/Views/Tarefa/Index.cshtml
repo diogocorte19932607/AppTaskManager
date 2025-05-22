@@ -1,0 +1,152 @@
+﻿@{
+	ViewData["Title"] = "Tarefas";
+}
+
+<div class="row justify-content-md-center">
+	<div class="col-md-10">
+
+		<div class="alert" id="alertTarefa" role="alert"></div>
+
+		<form id="criarTarefa" name="criarTarefa">
+			<h2 class="text-monospace">Nova Tarefa</h2>
+			<hr />
+			<div class="row g-3">
+				<div class="col-md-6">
+					<label for="titulo" class="form-label">Título</label>
+					<input id="titulo" name="titulo" class="form-control" />
+				</div>
+			@* 	<div class="col-md-6">
+					<label for="status" class="form-label">Status</label>
+					<input id="status" name="status" class="form-control" />
+				</div> *@
+				<div class="col-md-6">
+					<label for="status" class="form-label">Status</label>
+					<select id="status" name="status" class="form-control">
+						<option value="0">Pendente</option>
+						<option value="1">Concluída</option>
+					</select>
+				</div>
+				<div class="col-md-12">
+					<label for="descricao" class="form-label">Descrição</label>
+					<textarea id="descricao" name="descricao" class="form-control" rows="3"></textarea>
+				</div>
+			</div>
+
+			<div class="form-group text-center mt-4">
+				<button id="addTarefa" type="button" class="btn btn-success">ADICIONAR</button>
+			</div>
+		</form>
+
+		<h2 class="text-monospace mt-5">Tarefas já cadastradas</h2>
+		<table class="table table-striped" id="tbTarefas">
+			<thead>
+				<tr>
+					<th scope="col">Título</th>
+					<th scope="col">Status</th>
+					<th scope="col">Criado Em</th>
+					<th></th>
+					<th></th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+
+@section Scripts {
+	<script>
+		$(function () {
+
+			new DataTable('#tbTarefas', {
+				ajax: { url: "@Url.ActionLink("ListarTarefas", "Tarefa")", dataSrc: "" },
+				language: {
+					url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
+				},
+				columns: [
+					{ data: 'title' },
+					{
+						data: 'status',
+						render: function (data) {
+							return data === 0 ? 'Pendente' : 'Concluída';
+						}
+					},
+					{
+						data: 'createdAt',
+						render: function (data) {
+							return new Date(data).toLocaleString();
+						}
+					},
+					{
+						data: 'id', render: function (data) {
+							return `<a class="deletarTarefa" onclick="deletarTarefa('${data}')" href="javascript:void(0)">&#x274C;</a>`;
+						}
+					},
+					{
+						data: 'id', render: function (data) {
+							return `<a class="editarTarefa" href="@Url.Action("Editar", "Tarefa")/${data}">editar</a>`;
+						}
+					}
+				]
+			});
+
+			$('#addTarefa').click(function (e) {
+				showLoading();
+				e.preventDefault();
+				const form = document.forms.criarTarefa;
+				const { titulo, descricao, status } = form;
+
+				if (titulo.value === "") {
+					hideLoading();
+					alert('É necessário adicionar o título da tarefa!');
+					return false;
+				}
+				if (descricao.value === "") {
+					hideLoading();
+					alert('É necessário adicionar a descrição da tarefa!');
+					return false;
+				}
+
+				const obj = {
+					Id: "",
+					Title: titulo.value,
+					Description: descricao.value,
+					Status: parseInt(status.value),
+					CreatedAt: new Date().toISOString()
+				};
+
+				$.ajax({
+					url: '/Tarefa/CriarTarefa',
+					method: 'POST',
+					data: JSON.stringify(obj),
+					dataType: 'json',
+					contentType: 'application/json',
+					success: function (data) {
+						var ret = JSON.parse(data.ret || '{}');
+						if (data.sucesso) {
+							$('#alertTarefa').addClass('alert-success').removeClass('alert-danger');
+							$('#alertTarefa').html('Tarefa cadastrada com sucesso!').fadeIn();
+						} else {
+							$('#alertTarefa').addClass('alert-danger').removeClass('alert-success');
+							$('#alertTarefa').html(ret.exibicaoMensagem?.mensagemCurta || "Erro ao cadastrar tarefa").fadeIn();
+						}
+						hideLoading();
+						$("#tbTarefas").DataTable().ajax.reload();
+					}
+				});
+			});
+		});
+
+		function deletarTarefa(id) {
+			showLoading();
+			$.ajax({
+				url: '/DeletarTarefa/' + id,
+				method: 'DELETE',
+				dataType: 'json',
+				contentType: 'application/json',
+				success: function () {
+					hideLoading();
+					$("#tbTarefas").DataTable().ajax.reload();
+				}
+			});
+		}
+	</script>
+}

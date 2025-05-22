@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  rommanel-api:
+    build:
+      context: .
+      dockerfile: TaskManager.Api/Dockerfile
+    ports:
+      - "5000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__clienteDB=Server=SQL1003.site4now.net;Database=db_ab7b57_azurepipelinesql;User Id=db_ab7b57_azurepipelinesql_admin;Password=!098Cao10@;Encrypt=True;TrustServerCertificate=False;MultipleActiveResultSets=True;Connection Timeout=30;
+      - AppSettings__Secret=MEU SEGREDO sajd dadoas dpadodpoapdoiaspdiaspdiaspdiasiasd
+      - AppSettings__ExpiracaoHoras=2
+      - AppSettings__Emissor=MeuSistema
+      - AppSettings__ValidoEm=https://localhost
